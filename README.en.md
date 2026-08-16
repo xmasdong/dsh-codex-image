@@ -17,23 +17,33 @@ Generated/edited images are written to disk **and** committed to the harness att
 
 ## Installation
 
-Prerequisites: a local `codex-image-bridge` skill checkout with `scripts/` (the skill is self-contained — see its SKILL.md), and a working Codex app-server login (`node <skill-dir>/scripts/cli.mjs auth` should return an `account`).
+Prerequisites: a checkout of the codex-image-bridge skill's `scripts/` directory (`skillDir`, default `~/.claude/skills/codex-image-bridge`), and a working Codex app-server login (`node <skillDir>/scripts/cli.mjs auth` should return an `account`).
+
+This project is an official composition bundle — pick any of the three official install paths:
 
 ```bash
-# 1. Make the plugin's @deepseek-ai/* imports resolvable:
-#    symlinks the DSH flat fallback ($DSH_HOME/profiles/node_modules) into
-#    this project's node_modules, matching the running harness versions exactly.
-bash setup.sh
+# 1. npm package (pre-built lib/, no build permission needed)
+dsh plugin --profile web add dsh-codex-image-bridge
 
-# 2. Register the plugin in the live profile (hot-reloaded, no restart):
-#    append the insert below to ~/.dsh/profiles/web/cordis.patch.yml
-#    (or use it as a --patch overlay — see cordis.patch.yml)
-- insert:
-    - id: codex-image-bridge
-      name: '/absolute/path/to/dsh-codex-image/src/index.ts'
+# 2. Directly from GitHub (fetches source; first install needs an
+#    allowBuilds entry in pnpm-workspace.yaml to run the prepare build)
+dsh plugin --profile web add github:xmasdong/dsh-codex-image#<commit-sha>
+
+# 3. tarball (npm pack output, also no build permission needed)
+npm pack
+dsh plugin --profile web add ./dsh-codex-image-bridge-0.1.0.tgz
 ```
 
-`cordis.patch.yml` is watched by the harness patch-layer HMR: saving it re-composes the plugin tree and loads the plugin immediately (Settings → plugin inventory shows `include:codex-image-bridge`).
+GitHub installs require the following `allowBuilds` grant in the profile's `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  dsh-codex-image-bridge: true
+```
+
+The bundle is appended to the profile's `dsh.profile.bundles` on install; `dsh plugin --profile web remove dsh-codex-image-bridge` uninstalls. Override configuration in the profile's `cordis.patch.yml` by row id `codex-image-bridge` (hot-reloaded by patch-layer HMR).
+
+For local development without installing, use the overlay flow: `dsh web --patch ./cordis.patch.yml` with the plugin row referencing the source absolute path (see the header comment in `cordis.patch.yml`).
 
 ## Configuration
 
@@ -54,11 +64,23 @@ Override via `config:` in the patch entry (defaults come from the Config schema 
 ## Development
 
 ```bash
-npm run typecheck   # tsc --noEmit
-npm run smoke       # offline smoke test: loads the plugin, asserts the 4 tools register (no Codex connection)
+bash setup.sh        # dev only: symlink $DSH_HOME/profiles/node_modules into node_modules
+npm run typecheck    # tsc --noEmit
+npm run build        # build lib/ (bundle publish artifact)
+npm run smoke        # offline smoke test: loads the plugin, asserts the 4 tools register (no Codex connection)
 ```
 
 See `scripts/` and the skill's SKILL.md for real end-to-end verification (requires a Codex login).
+
+## Publishing (composition bundle)
+
+```bash
+npm login            # once
+npm version patch    # or minor/major; creates the git tag
+npm publish          # the prepare hook builds lib/ before publishing
+```
+
+The package declares its config layer via `dsh.bundle.patch` in `package.json`; `cordis.patch.yml` references the plugin entry by package name (`dsh-codex-image-bridge`), so users get all four `codex_image_*` tools after install. Verify in a scratch profile before publishing: `dsh plugin --profile demo add ./` + `dsh --profile demo --dump-config`.
 
 ## Design Notes
 

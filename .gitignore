@@ -3,3 +3,4 @@ outputs/
 test-outputs/
 *.log
 .DS_Store
+lib/

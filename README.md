@@ -17,23 +17,33 @@ DeepSeek Harness 插件：把本机 `codex-image-bridge` skill（通过 Codex ap
 
 ## 安装
 
-前置：本机已有 `~/.claude/skills/codex-image-bridge`（含 `scripts/`），且 Codex app-server 可用（`node ~/.claude/skills/codex-image-bridge/scripts/cli.mjs auth` 能返回 account）。
+前置：本机已有 codex-image-bridge skill 的 `scripts/` 目录（`skillDir` 配置，默认 `~/.claude/skills/codex-image-bridge`），且 Codex app-server 可用（`node <skillDir>/scripts/cli.mjs auth` 能返回 account）。
+
+本项目是官方组合包（bundle）格式，三种官方安装方式任选其一：
 
 ```bash
-# 1. 让插件的 @deepseek-ai/* 依赖可解析：
-#    把 $DSH_HOME/profiles/node_modules 的包以符号链接暴露到本项目 node_modules，
-#    保证与运行中的 harness 版本完全一致。
-bash setup.sh
+# 方式一：npm 发布包（安装的是预构建的 lib/，无需构建权限）
+dsh plugin --profile web add dsh-codex-image-bridge
 
-# 2. 注册到当前 profile（热重载，无需重启 GUI）：
-#    把下面 insert 追加到 ~/.dsh/profiles/web/cordis.patch.yml
-#    （也可以复制到任何 profile 或作为 --patch 覆盖层，见 cordis.patch.yml）
-- insert:
-    - id: codex-image-bridge
-      name: '/absolute/path/to/dsh-codex-image/src/index.ts'
+# 方式二：直接从 GitHub 安装（拉取源码；首次需在 pnpm-workspace.yaml 中
+#         添加 allowBuilds 授权以运行 prepare 构建脚本，见下）
+dsh plugin --profile web add github:xmasdong/dsh-codex-image#<commit-sha>
+
+# 方式三：tarball（npm pack 产物，也无需构建权限）
+npm pack
+dsh plugin --profile web add ./dsh-codex-image-bridge-0.1.0.tgz
 ```
 
-`cordis.patch.yml` 被 harness 的 patch-layer HMR 监听：保存后插件树自动重组，插件即被加载（Settings → 插件清单可见 `include:codex-image-bridge`）。
+GitHub 安装的 `allowBuilds` 授权（写入该 profile 的 `pnpm-workspace.yaml`）：
+
+```yaml
+allowBuilds:
+  dsh-codex-image-bridge: true
+```
+
+安装后插件自动追加进 profile 的 `dsh.profile.bundles`；`dsh plugin --profile web remove dsh-codex-image-bridge` 卸载。配置在 profile 的 `cordis.patch.yml` 中按 `id: codex-image-bridge` 覆盖（HMR 热生效）。
+
+本地开发（不安装）时用 overlay：`dsh web --patch ./cordis.patch.yml`，插件行按源码绝对路径引用（见 `cordis.patch.yml` 头部注释）。
 
 ## 配置
 
@@ -54,11 +64,23 @@ bash setup.sh
 ## 开发与验证
 
 ```bash
-npm run typecheck   # tsc --noEmit
-npm run smoke       # 离线冒烟：加载插件 + 断言 4 个工具注册（不连 Codex）
+bash setup.sh        # 本地开发：把 $DSH_HOME/profiles/node_modules 符号链接进 node_modules
+npm run typecheck    # tsc --noEmit
+npm run build        # 构建 lib/（bundle 发布产物）
+npm run smoke        # 离线冒烟：加载插件 + 断言 4 个工具注册（不连 Codex）
 ```
 
 真实链路（需要 Codex 登录）验证方式见 `scripts/` 与 skill 的 SKILL.md。
+
+## 发布（组合包）
+
+```bash
+npm login            # 一次即可
+npm version patch    # 或 minor/major，自动打 tag
+npm publish          # prepare 钩子自动构建 lib/ 后发布
+```
+
+包通过 `package.json` 的 `dsh.bundle.patch` 声明配置层，`cordis.patch.yml` 内按包名 `dsh-codex-image-bridge` 引用插件入口；用户安装后即获得 `codex_image_*` 四个工具。发布前建议先在临时 profile 验证：`dsh plugin --profile demo add ./` + `dsh --profile demo --dump-config`。
 
 ## 设计说明
 
