@@ -39,9 +39,9 @@
   ],
   "scripts": {
     "setup": "bash setup.sh",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node node_modules/typescript/bin/tsc -p tsconfig.build.json",
     "prepare": "npm run build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
