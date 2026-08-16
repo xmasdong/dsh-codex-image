@@ -1,0 +1,45 @@
+{
+  "name": "dsh-codex-image-bridge",
+  "version": "0.1.0",
+  "private": false,
+  "description": "DeepSeek Harness plugin: Codex image generation/edit/vision tools backed by the local codex-image-bridge skill.",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "codex",
+    "chatgpt",
+    "image-generation",
+    "image-editing",
+    "vision"
+  ],
+  "license": "MIT",
+  "author": "xmasdong",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmasdong/dsh-codex-image.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xmasdong/dsh-codex-image/issues"
+  },
+  "homepage": "https://github.com/xmasdong/dsh-codex-image#readme",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "files": [
+    "src/",
+    "scripts/",
+    "setup.sh",
+    "cordis.patch.yml"
+  ],
+  "scripts": {
+    "setup": "bash setup.sh",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh": "^0.1.0-rc.6",
+    "typescript": "^5.5.0"
+  }
+}

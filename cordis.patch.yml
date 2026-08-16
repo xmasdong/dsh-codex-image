@@ -1,0 +1,29 @@
+# dsh-codex-image-bridge — loader overlay
+#
+# Two ways to load the plugin:
+#
+# 1. Ad-hoc (tutorial flow):
+#      dsh web --patch ./cordis.patch.yml
+#
+# 2. Persistent (live profile):
+#      append this same insert to ~/.dsh/profiles/<profile>/cordis.patch.yml
+#
+# The plugin path must be absolute. Replace <REPO-ROOT> with the checkout
+# location on the target machine (e.g. /home/user/dsh-codex-image).
+#
+# The file is watched by the harness patch-layer HMR, so saving it re-composes
+# the plugin tree without restarting the GUI.
+- insert:
+    - id: codex-image-bridge
+      name: '<REPO-ROOT>/src/index.ts'
+      # All fields optional — defaults come from the plugin Config schema and
+      # its environment fallbacks (CODEX_THREAD_MODEL, CODEX_COMMAND,
+      # CODEX_IMAGE_SANDBOX, CODEX_VISION_MODEL).
+      # config:
+      #   skillDir: '~/.claude/skills/codex-image-bridge'
+      #   outputDir: '<REPO-ROOT>/outputs'
+      #   threadModel: 'gpt-5.5'
+      #   timeoutMs: 120000
+      #   acceptToolImages: false
+      #   visionModel: 'gpt-5.5'
+      #   visionTimeoutMs: 180000
