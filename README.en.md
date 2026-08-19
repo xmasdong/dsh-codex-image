@@ -1,5 +1,7 @@
 # dsh-codex-image-bridge
 
+> English | [中文](README.md)
+
 Give [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) **vision**: the agent can not only read and write text — it can **generate images, edit images, and understand images**.
 
 ## What it does

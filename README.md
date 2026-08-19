@@ -1,5 +1,7 @@
 # dsh-codex-image-bridge
 
+> [English](README.en.md) | 中文
+
 给 DeepSeek Harness 装上**视觉能力**：AI 助手不仅能读写文本，还能**生成图像、编辑图像、看懂图像**。
 
 ## 它能做什么
