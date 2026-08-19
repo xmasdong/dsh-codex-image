@@ -1,23 +1,21 @@
 # dsh-codex-image-bridge
 
-A [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) plugin that adapts the local `codex-image-bridge` skill (image generation through the Codex app-server / managed ChatGPT login) into four native harness tools. The skill is a self-contained bundle of scripts — this plugin only needs a checkout of its `scripts/` directory (see `skillDir` below).
+Give [DeepSeek Harness](https://deepseek-harness.github.io/deepseek-harness/) **vision**: the agent can not only read and write text — it can **generate images, edit images, and understand images**.
 
-Built following the official docs — [Your First Plugin](https://deepseek-harness.github.io/deepseek-harness/develop/basic/), [Developing a Tool](https://deepseek-harness.github.io/deepseek-harness/develop/basic/tool), [Plugin Configuration](https://deepseek-harness.github.io/deepseek-harness/develop/basic/config): a plugin is a TypeScript module exporting `apply(ctx, config)` that registers capabilities through `ctx.tools.register(defineTool(...))`; configuration is validated with a Schemastery schema.
+## What it does
 
-## Tools
+| Capability | Tool | Description |
+| --- | --- | --- |
+| 🎨 **Generate** | `codex_image_generate` | Turn a plain-language prompt into a PNG (character art, icons, concept art, game assets…) |
+| ✏️ **Edit** | `codex_image_edit` | Take an existing image, keep the subject/style intact, change only the details you specify, and produce a variant |
+| 👁 **Understand** | `codex_image_describe` | Let the model "see" a local image: describe its content, spot rendering problems, answer questions about the picture |
+| 🔌 **Check** | `codex_image_auth_status` | Verify the image service login so you know generation can start |
 
-| Tool | Description |
-| --- | --- |
-| `codex_image_auth_status` | Check whether the Codex app-server managed login is available (account / token state) |
-| `codex_image_generate` | Generate a PNG through native model image generation (strict mode: only `image_generation_call` / `imageGeneration` counts as success; tool/code fallbacks are never treated as success) |
-| `codex_image_edit` | Regenerate a variant using a source (mother) image as visual reference (reference-image regeneration, not pixel-level in-place editing or masked inpainting) |
-| `codex_image_describe` | Ask the Codex vision model to describe a local PNG (plain text; no generation) |
-
-Generated/edited images are written to disk **and** committed to the harness attachment store (`ctx.attachments.saveImage`), so the GUI shows the image inline in the tool result.
+Generated/edited images appear **inline in the conversation result** and are also saved to disk (default `outputs/`) for later reuse or downstream pipelines.
 
 ## Installation
 
-Prerequisites: a checkout of the codex-image-bridge skill's `scripts/` directory (`skillDir`, default `~/.claude/skills/codex-image-bridge`), and a working Codex app-server login (`node <skillDir>/scripts/cli.mjs auth` should return an `account`).
+Prerequisites: image-service scripts available at `skillDir` (a directory containing `scripts/`, default `~/.claude/skills/codex-image-bridge`, configurable), and a valid service login (`node <skillDir>/scripts/cli.mjs auth` should return an `account`).
 
 This project is an official composition bundle — pick any of the three official install paths:
 
@@ -51,7 +49,7 @@ Override via `config:` in the patch entry (defaults come from the Config schema 
 
 | Field | Default | Description |
 | --- | --- | --- |
-| `skillDir` | `~/.claude/skills/codex-image-bridge` | Skill directory (scripts are dynamically imported from `scripts/`) |
+| `skillDir` | `~/.claude/skills/codex-image-bridge` | Local scripts directory (dynamically imported from `scripts/` at runtime) |
 | `outputDir` | `''` → `<skillDir>/outputs` | Where generated PNGs are written |
 | `threadModel` | `CODEX_THREAD_MODEL` → `gpt-5.5` | Codex thread model for generation/edit |
 | `timeoutMs` | `120000` | Timeout for one generation/edit turn |

@@ -1,23 +1,21 @@
 # dsh-codex-image-bridge
 
-DeepSeek Harness 插件：把本机 `codex-image-bridge` skill（通过 Codex app-server / 受管 ChatGPT 登录生图）适配为 Harness 的四个原生工具。skill 是自包含的脚本包，本插件只需它的 `scripts/` 目录（见下方 `skillDir` 配置）。
+给 DeepSeek Harness 装上**视觉能力**：AI 助手不仅能读写文本，还能**生成图像、编辑图像、看懂图像**。
 
-基于官方文档 [《第一个插件》](https://deepseek-harness.github.io/deepseek-harness/develop/basic/) 与 [《开发一个工具》](https://deepseek-harness.github.io/deepseek-harness/develop/basic/tool) 编写：插件是一个导出 `apply(ctx, config)` 的 TypeScript 模块，通过 `ctx.tools.register(defineTool(...))` 注册工具，配置用 Schemastery schema 校验。
+## 它能做什么
 
-## 注册的工具
+| 能力 | 工具 | 说明 |
+| --- | --- | --- |
+| 🎨 **生成图像** | `codex_image_generate` | 一句自然语言提示词，生成 PNG 图片（角色立绘、图标、概念图、游戏素材……） |
+| ✏️ **编辑图像** | `codex_image_edit` | 以一张现有图片为基础，保持主体/风格不变，只修改指定细节，产出变体 |
+| 👁 **看懂图像** | `codex_image_describe` | 让模型"看"一张本地图片：描述内容、检查渲染问题、回答关于画面细节的问题 |
+| 🔌 **服务检查** | `codex_image_auth_status` | 检查图像服务登录状态，确认能否开始生成 |
 
-| 工具 | 说明 |
-| --- | --- |
-| `codex_image_auth_status` | 检查 Codex app-server 受管登录是否可用（账户 / token 状态） |
-| `codex_image_generate` | 用原生模型生成 PNG（严格模式：只认 `image_generation_call` / `imageGeneration`，工具回退不视为成功） |
-| `codex_image_edit` | 以母图（mother image）为视觉参考重绘变体（参考图再生，非像素级就地编辑/蒙版） |
-| `codex_image_describe` | 用 Codex vision 模型描述本地 PNG（纯文本，不生成图） |
-
-生成/编辑结果除了写到磁盘，还会提交到 Harness 附件库（`ctx.attachments.saveImage`），因此 GUI 的工具结果里会**内嵌显示生成的图片**。
+生成/编辑的图片会**直接显示在会话结果里**，同时保存为本地文件（默认 `outputs/`），方便后续继续使用或交给其他流程。
 
 ## 安装
 
-前置：本机已有 codex-image-bridge skill 的 `scripts/` 目录（`skillDir` 配置，默认 `~/.claude/skills/codex-image-bridge`），且 Codex app-server 可用（`node <skillDir>/scripts/cli.mjs auth` 能返回 account）。
+前置：图像服务脚本可用——`skillDir` 指向含 `scripts/` 的目录（默认 `~/.claude/skills/codex-image-bridge`，可配置），且服务登录有效（`node <skillDir>/scripts/cli.mjs auth` 能返回 account）。
 
 本项目是官方组合包（bundle）格式，三种官方安装方式任选其一：
 
@@ -51,7 +49,7 @@ allowBuilds:
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `skillDir` | `~/.claude/skills/codex-image-bridge` | skill 目录（脚本从 `scripts/` 动态导入） |
+| `skillDir` | `~/.claude/skills/codex-image-bridge` | 本地脚本目录（运行时从 `scripts/` 动态导入） |
 | `outputDir` | `''` → `<skillDir>/outputs` | 生成 PNG 的落盘目录 |
 | `threadModel` | `CODEX_THREAD_MODEL` → `gpt-5.5` | Codex 生图 thread 模型 |
 | `timeoutMs` | `120000` | 单次生图/编辑 turn 超时 |
